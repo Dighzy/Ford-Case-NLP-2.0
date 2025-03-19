@@ -29,14 +29,14 @@ nltk.download('wordnet')
 
 
 class TextProcessor:
-    def __init__(self):
+    def __init__(self) -> None:
         """
         Load the lemmatizer and set the stop_words
         """
         self.lemmatizer = WordNetLemmatizer()
         self.stop_words = set(stopwords.words('english'))
 
-    def preprocess_text(self, text):
+    def preprocess_text(self, text: str) -> str:
         """
         Apply preprocess into the text, such as removing  special characters, punctuation and stop words. 
         Apply Tokenization and Lemmatization.
@@ -61,14 +61,14 @@ class TextProcessor:
         return ' '.join(words)
 
 class FeatureExtractor:
-    def __init__(self):
+    def __init__(self) -> None:
         """
         Load the pre-trained BERT model and tokenizer
         """
         self.tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
         self.model = BertModel.from_pretrained('bert-base-uncased')
 
-    def get_model_embedding(self, text):
+    def get_model_embedding(self, text: str) -> any:
         """
         Converts text into a BERT embedding
 
@@ -85,7 +85,7 @@ class FeatureExtractor:
         return outputs.last_hidden_state.mean(dim=1).squeeze().numpy()
 
 
-    def get_sentiment_and_count(self, df):
+    def get_sentiment_and_count(self, df: pd.DataFrame) -> pd.DataFrame:
         """
         Get sentiment in the text and count the number of words and characters in the text.
 
@@ -102,7 +102,7 @@ class FeatureExtractor:
 
         return df
     
-    def get_categories(self, df):
+    def get_categories(self, df: pd.DataFrame) -> pd.DataFrame:
         """
         Transform the 'components_list' column into general categories.
 
@@ -122,7 +122,7 @@ class FeatureExtractor:
 
         return df
     
-    def transform_categories(self, df):
+    def transform_categories(self, df: pd.DataFrame, is_training: bool = False) -> pd.DataFrame:
         """
         Transform the 'general_category' column into binary categories.
 
@@ -133,25 +133,26 @@ class FeatureExtractor:
         mlb = MultiLabelBinarizer()
         y = mlb.fit_transform(df['general_category'])
         df['category_binary'] = list(y)
+        
+        if is_training:
+            # Save the classes to a JSON file for later reconstruction
+            categories = mlb.classes_.tolist()
 
-        # Save the classes to a JSON file for later reconstruction
-        categories = mlb.classes_.tolist()
-
-        with open("models/params/category_classes.json", "w") as file:
-            json.dump(categories, file)
+            with open("models/params/category_classes.json", "w") as file:
+                json.dump(categories, file)
 
         return df
         
 
 class TopicsProcessor:  
-    def __init__(self):
+    def __init__(self) -> None:
         """
         Initializes the TopicsProcessor class.
         """
         self.topic_model = None
         self.tfidf = None
 
-    def fit_tfidf(self, df):
+    def fit_tfidf(self, df: pd.DataFrame) -> np.ndarray:
         """
         Train the TF-IDF with the train data.
         
@@ -164,7 +165,7 @@ class TopicsProcessor:
         joblib.dump(self.tfidf, "models/tfidf_vectorizer.pkl")
         return tfidf_matrix
 
-    def fit_topic_model(self, tfidf_matrix):
+    def fit_topic_model(self, tfidf_matrix: np.ndarray) -> np.ndarray:
         """
         Train the topic model
         """
@@ -174,7 +175,7 @@ class TopicsProcessor:
         joblib.dump(self.topic_model, "models/lda_model.pkl")
         return topic_features
 
-    def transform_for_prediction(self, df):
+    def transform_for_prediction(self, df: pd.DataFrame):
         """
         Loads the pre-trained topic model.
         
@@ -188,7 +189,7 @@ class TopicsProcessor:
         topic_features = self.topic_model.transform(tfidf_matrix) 
         return topic_features
 
-    def get_topics(self, df, is_training=False):
+    def get_topics(self, df: pd.DataFrame, is_training: bool =False) -> pd.DataFrame:
         """
         Get the topics
 
@@ -313,7 +314,6 @@ if __name__ == "__main__":
 
     df_final = feature_extractor.get_categories(df_final)
     df_final = feature_extractor.transform_categories(df_final)
-
     print(df_final[['category_binary','general_category','components_list']].head())
     
 

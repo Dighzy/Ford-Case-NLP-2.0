@@ -2,16 +2,12 @@
 import pandas as pd
 import tensorflow as tf
 import numpy as np
-import ast
 import json
-import joblib
-import random 
 
 import keras_tuner as kt
 
 from process_data import DataProcessor, FeatureExtractor, TopicsProcessor, TextProcessor
 
-from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 
 from tensorflow.keras.layers import Input, Dense, Concatenate, Dropout, BatchNormalization, GaussianNoise
@@ -83,37 +79,6 @@ def get_model_tuner(X_emb_train: pd.DataFrame, X_add_train: pd.DataFrame, n_cate
 
     return tuner
 
-def  get_processed_features(df):
-        # Converting columns 
-    df["category_binary"] = df["category_binary"].apply(lambda x: ast.literal_eval(x) if isinstance(x, str) else x)
-    df["model_embedding"] = df["model_embedding"].apply(lambda x: ast.literal_eval(x) if isinstance(x, str) else x)
-    df["summary_embedding"] = df["summary_embedding"].apply(lambda x: ast.literal_eval(x) if isinstance(x, str) else x)
-
-    # Convert embeddings and category binary column to NumPy arrays
-    X_embeddings = np.array(df["summary_embedding"].tolist())
-    y_category_binary = np.array(df["category_binary"].tolist())  # Ensure it's a 2D array
-    df['model_embedding'] = np.array(df["model_embedding"].tolist())
-
-    # Normalize additional features
-    additional_features = df[['model_embedding','word_count', 'char_count', 'sentiment', 'topic_1', 'topic_2']]
-    scaler = StandardScaler()
-    X_additional_features = scaler.fit_transform(additional_features)
-
-    print("Scaler mean:", scaler.mean_)
-    print("Scaler scale:", scaler.scale_)
-
-    # Define mean and scale values
-    scaler_data = {
-        "mean": scaler.mean_.tolist(),
-        "scale": scaler.scale_.tolist()
-}
-    # Save to JSON file
-    with open('models/params/scaler_params.json', 'w') as f:
-        json.dump(scaler_data, f)
-
-    return X_embeddings, X_additional_features, y_category_binary
-
-
 def set_test_df(X_emb_test: np.ndarray, X_add_test: np.ndarray, y_test: np.ndarray) -> None:
     """
     Prepares the test dataset and saves it as a CSV file.
@@ -148,7 +113,7 @@ if __name__ == "__main__":
     tf.random.set_seed(42)
 
     df_final = pd.read_csv('data/raw/full_data_2020_2025_FORD.csv')
-    df_final = df_final.head(100).copy()
+    #df_final = df_final.head(100).copy()
 
     # Getting classes
     text_processor = TextProcessor()
@@ -169,7 +134,7 @@ if __name__ == "__main__":
     df_final['processed_summary'] = df_final['summary'].apply(text_processor.preprocess_text)
 
     df_final = feature_extractor.get_categories(df_final)
-    df_final = feature_extractor.transform_categories(df_final)
+    df_final = feature_extractor.transform_categories(df_final, is_training=True)
 
     # Get embeddings
     df_final['summary_embedding'] = df_final['summary'].apply(feature_extractor.get_model_embedding)
@@ -182,6 +147,14 @@ if __name__ == "__main__":
     # Processing and normalazing the embedding and additional_features
     embeddings = np.array(df_final["summary_embedding"].to_list())
     category_binary = np.array(df_final["category_binary"].to_list())
+
+    # Saving my final data to use in the model
+    df_salvar = df_final.copy()
+    df_salvar['summary_embedding'] = df_salvar['summary_embedding'].apply(lambda x: json.dumps(x.tolist()) if isinstance(x, np.ndarray) else x)
+    df_salvar['model_embedding'] = df_salvar['model_embedding'].apply(lambda x: json.dumps(x.tolist()) if isinstance(x, np.ndarray) else x)
+    df_salvar['category_binary'] = df_salvar['category_binary'].apply(lambda x: json.dumps(x.tolist()) if isinstance(x, np.ndarray) else x)
+    df_salvar[['processed_summary', 'summary_embedding', 'model_embedding', 'word_count', 'char_count',
+        'sentiment', 'category_binary']].to_csv('./data/processed/df_final_model.csv',index=False)
 
     additional_features= data_processor.process_train_data(df_final)
 
