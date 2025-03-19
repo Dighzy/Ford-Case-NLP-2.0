@@ -134,7 +134,7 @@ if __name__ == "__main__":
     df_final['processed_summary'] = df_final['summary'].apply(text_processor.preprocess_text)
 
     df_final = feature_extractor.get_categories(df_final)
-    df_final = feature_extractor.transform_categories(df_final)
+    df_final = feature_extractor.transform_categories(df_final, is_training=True)
 
     # Get embeddings
     df_final['summary_embedding'] = df_final['summary'].apply(feature_extractor.get_model_embedding)
