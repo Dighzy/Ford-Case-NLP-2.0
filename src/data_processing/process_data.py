@@ -8,6 +8,7 @@ import joblib
 import json
 import os
 import ast
+from typing import Tuple
 
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
@@ -19,20 +20,16 @@ from textblob import TextBlob
 from sklearn.decomposition import LatentDirichletAllocation
 from sklearn.feature_extraction.text import TfidfVectorizer
 
-
-# Baixar recursos necessários
-nltk.download('punkt_tab')
-nltk.download('stopwords')
-nltk.download('wordnet')
-
-# Text preprocessing function
-
-
 class TextProcessor:
     def __init__(self) -> None:
         """
         Load the lemmatizer and set the stop_words
         """
+        # Downloading the resources if necessary
+        nltk.download('punkt_tab')
+        nltk.download('stopwords')
+        nltk.download('wordnet')
+
         self.lemmatizer = WordNetLemmatizer()
         self.stop_words = set(stopwords.words('english'))
 
@@ -102,47 +99,92 @@ class FeatureExtractor:
 
         return df
     
-    def get_categories(self, df: pd.DataFrame) -> pd.DataFrame:
+class CategoryTransformer:
+    def transform_categories(self, df: pd.DataFrame, is_training: bool = False) -> pd.DataFrame:
         """
-        Transform the 'components_list' column into general categories.
+        Transform the 'pieces', 'type_of_problem', and 'cause' columns into binary categories.
 
         ## Parameters
         - df (pd.DataFrame): DataFrame.
+        - is_training (bool): Flag to determine if it's training (to save the categories).
         """
         
-        # Mapping the categories problemns 
-        with open("models/params/categories.json", "r") as file:
-            category_map = json.load(file)
-        
-        df["components_list"] = df["components"].apply(lambda x: x.split(",") if pd.notna(x) else [])
-        
-        df["general_category"] = df["components_list"].apply(
-            lambda x: list(set(category_map.get(i, "Other Problems") for i in x))
+        # Initialize MultiLabelBinarizer for each category column
+        mlb_components = MultiLabelBinarizer()
+        mlb_type = MultiLabelBinarizer()
+        mlb_cause = MultiLabelBinarizer()
+
+        # Tranform the components class into a list
+        df['components'] = df['components'].apply(lambda x: x.split(",") if pd.notna(x) else [])
+        components_exploded = df['components'].explode().value_counts()
+
+        # Replacing rare labels 
+        components_to_replace = components_exploded[components_exploded < 200].index
+        df['components'] = df['components'].apply(
+            lambda x: ['UNKNOWN OR OTHER' if component in components_to_replace else component for component in x]
         )
+
+        # Transform the columns into binary categories
+        y_components = mlb_components.fit_transform(list(df['components']))
+        y_type = mlb_type.fit_transform(list(df['problem_type']))
+        y_cause = mlb_cause.fit_transform(list(df['problem_cause']))
+
+        print(mlb_components.classes_)  
+        print(y_components[:5])  
+
+
+        # Add the binary columns to the DataFrame
+        df['components_binary'] = list(y_components)
+        df['problem_type_binary'] = list(y_type)
+        df['cause_binary'] = list(y_cause)
+
+        if is_training:
+            # Save the classes to JSON files for later reconstruction
+            categories = {
+                'components': mlb_components.classes_.tolist(),
+                'type_problem': mlb_type.classes_.tolist(),
+                'cause': mlb_cause.classes_.tolist()
+            }
+
+            # Save the categories in JSON files
+            with open("models/params/categories/components_classes.json", "w") as file:
+                json.dump(categories['components'], file)
+            with open("models/params/categories/type_classes.json", "w") as file:
+                json.dump(categories['type_problem'], file)
+            with open("models/params/categories/cause_classes.json", "w") as file:
+                json.dump(categories['cause'], file)
 
         return df
     
-    def transform_categories(self, df: pd.DataFrame, is_training: bool = False) -> pd.DataFrame:
+    def extract_pieces_and_problems(self, text: str) -> Tuple[str, str]:
         """
-        Transform the 'general_category' column into binary categories.
-
-        ## Parameters
-        - df (pd.DataFrame): DataFrame.
+        Extracts all pieces and problem types from the given text.
+        
+        ## Parameters:
+        text (str): The summary text.
+        
         """
-        
-        mlb = MultiLabelBinarizer()
-        y = mlb.fit_transform(df['general_category'])
-        df['category_binary'] = list(y)
-        
-        if is_training:
-            # Save the classes to a JSON file for later reconstruction
-            categories = mlb.classes_.tolist()
+        # List of keywords that indicate types of problems or failures
+        with open("models/params/categories/type_problems.json", "r") as file:
+                    problem_mapping = json.load(file)
 
-            with open("models/params/category_classes.json", "w") as file:
-                json.dump(categories, file)
+        with open("models/params/categories/cause_problems.json", "r") as file:
+                    cause_mapping = json.load(file)
 
-        return df
-        
+        # Clean text to lower case for easier matching
+        text = text.lower()
+
+        # Detect all matching problems
+        detected_problems = [general_problem for general_problem, variations in problem_mapping.items()
+                            if any(var in text for var in variations)]
+        problem_result = list(set(detected_problems)) if detected_problems else ["undefined"]
+
+        # Detect all matching causes
+        detected_causes = [general_cause for general_cause, variations in cause_mapping.items()
+                            if any(var in text for var in variations)]
+        cause_result = list(set(detected_causes)) if detected_causes else ["undefined"]
+
+        return problem_result, cause_result
 
 class TopicsProcessor:  
     def __init__(self) -> None:
@@ -292,13 +334,14 @@ if __name__ == "__main__":
     tf.random.set_seed(42)
 
     df_final = pd.read_csv('data/raw/full_data_2020_2025_FORD.csv')
-    df_final = df_final.head(5).copy()
+    #df_final = df_final.head(100).copy()
 
     # Getting classes
     text_processor = TextProcessor()
     feature_extractor = FeatureExtractor()
     topic_processor = TopicsProcessor()
     data_processor = DataProcessor()
+    category_tranformer =  CategoryTransformer()
 
 
     # Getting model types
@@ -306,33 +349,32 @@ if __name__ == "__main__":
     model_data = {
         "models":models
     }
-    #with open('models/params/models_params.json', 'w') as f:
-        #json.dump(model_data, f)
+    with open('models/params/models_params.json', 'w') as f:
+        json.dump(model_data, f)
     
     # Text preprocessing function
     df_final['processed_summary'] = df_final['summary'].apply(text_processor.preprocess_text)
 
-    df_final = feature_extractor.get_categories(df_final)
-    df_final = feature_extractor.transform_categories(df_final)
-    print(df_final[['category_binary','general_category','components_list']].head())
-    
+    df_final[['pieces', 'problem_type', 'problem_cause']] = df_final['summary'].apply(lambda x: category_tranformer.extract_pieces_and_problems(x) if isinstance(x, str) else ('undefined', 'undefined', 'undefined')).apply(pd.Series)
+    df_final = category_tranformer.transform_categories(df_final)
+    df_final[['summary', 'pieces', 'problem_type', 'problem_cause']].to_csv('./data/processed/df_final_categories.csv',index=False)
 
     # Get embeddings
-    df_final['summary_embedding'] = df_final['summary'].apply(feature_extractor.get_model_embedding)
-    df_final['model_embedding'] = df_final['Model'].apply(feature_extractor.get_model_embedding)
+    # df_final['summary_embedding'] = df_final['summary'].apply(feature_extractor.get_model_embedding)
 
-    print("embeddings:", df_final['summary_embedding'])
+    # # Processing and normalazing the embedding and additional_features
+    # embeddings = np.array(df_final["summary_embedding"].to_list())
+    # pieces_binary = np.array(df_final["pieces_binary"].to_list())
+    # problems_type_binary = np.array(df_final["problem_type_binary"].to_list())
+    # problems_cause_binary = np.array(df_final["cause_binary"].to_list())
 
-    # Get sentiment and topics
-    df_final = feature_extractor.get_sentiment_and_count(df_final)
-    df_final = topic_processor.get_topics(df_final)
+    # # Saving my final data to use in the model
+    # df_salvar = df_final.copy()
+    # df_salvar['summary_embedding'] = df_salvar['summary_embedding'].apply(lambda x: json.dumps(x.tolist()) if isinstance(x, np.ndarray) else x)
+    # df_salvar[['summary', 'summary_embedding', 'pieces', 'problem_type', 'problem_cause']].to_csv('./data/processed/df_final_model.csv',index=False)
 
-    # Processing and normalazing the embedding and additional_features
-    embeddings, additional_features = data_processor.process_predict_data(df_final)
 
-    # Verify the shapes of the data
-    print("embeddings shape:", embeddings.shape) 
-    print("additional_features shape:", additional_features.shape) 
+    # # Verify the shapes of the data
+    # print("embeddings shape:", embeddings.shape) 
 
-    print("embeddings:", embeddings)
-    print("additional_features:", additional_features)
+    # print("embeddings:", embeddings)

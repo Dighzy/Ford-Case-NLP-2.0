@@ -1,0 +1,21 @@
+{
+    "noise": ["noise", "noises", "noisy", "rattling", "squeaking", "squeal", "buzzing", "whining"],
+    "leak": ["leak", "leaks", "leaking", "drip", "dripping", "seep", "seeping"],
+    "overheating": ["overheat", "overheating", "hot", "temperature high", "engine hot"],
+    "failure": ["fail", "failed", "failure", "failing", "broken", "broke"],
+    "malfunction": ["malfunction", "malfunctions", "malfunctioning", "not working", "acting up", "glitch", "glitches"],
+    "vibration": ["vibration", "vibrations", "vibrating", "shaking", "shakes", "wobble", "wobbling"],
+    "wear": ["wear", "wearing", "worn", "torn", "friction", "chipped"],
+    "crack": ["crack", "cracks", "cracking", "split", "splitting"],
+    "stuck": ["stuck", "jammed", "won't move", "can't move"],
+    "slow response": ["slow", "lag", "lagging", "delayed", "delay"],
+    "loss of power": ["loss of power", "power loss", "weak", "low power"],
+    "short circuit": ["short", "short circuit", "electrical issue", "electrical problem"],
+    "burn": ["burn", "burned", "burning", "scorch", "scorched"],
+    "blown": ["blow", "blown", "burst", "popped"],
+    "unresponsive": ["unresponsive", "not responding", "dead", "non-functional"],
+    "locked": ["locked", "lock", "locks", "won't open", "stuck closed"],
+    "slip": ["slip", "slipping", "slipped", "skid", "skidding"],
+    "warning light": ["warning light", "check engine", "indicator on", "light on"],
+    "problem": ["problem", "issue", "trouble", "fault", "defect"]
+}
