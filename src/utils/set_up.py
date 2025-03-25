@@ -1,6 +1,7 @@
 import os.path
 
-from src import download_data, utils
+from data_processing import download_data
+from utils import utils
 
 path = 'data/raw/full_data_2020_2025_FORD.csv'
 

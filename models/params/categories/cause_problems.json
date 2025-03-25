@@ -1,0 +1,16 @@
+{
+    "wear and tear": ["wear and tear", "aging", "old", "worn out", "degraded", "fatigue", "usage"],
+    "lack of maintenance": ["lack of maintenance", "no maintenance", "poor maintenance", "neglect", "not serviced", "overdue service", "dealer", "repair", "service", "diagnosed", "mechanic"],
+    "physical damage": ["physical damage", "impact", "collision", "hit", "crash", "dent", "bent", "damage", "accident", "towed", "brakes"],
+    "electrical issue": ["electrical issue", "short circuit", "wiring problem", "fuse blown", "battery low", "battery", "electrical", "software", "warning", "powertrain", "power"],
+    "fluid leak": ["fluid leak", "oil leak", "coolant leak", "hydraulic leak", "brake fluid leak", "oil", "fluid", "brakes"],
+    "overload": ["overload", "overloaded", "too much weight", "heavy load", "strain", "exceeded", "heavy", "load", "weight"],
+    "contamination": ["contamination", "dirty", "clogged", "blocked", "debris", "dusty", "mud", "wiper", "windshield"],
+    "improper installation": ["improper installation", "wrongly installed", "bad fitment", "incorrect assembly", "assembly", "installation"],
+    "software issue": ["software issue", "firmware problem", "update needed", "computer glitch", "ECU fault", "update", "fault", "malfunction"],
+    "manufacturing defect": ["manufacturing defect", "factory defect", "design flaw", "recall issue", "production error", "recall", "manufacturer", "vehicle"],
+    "user error": ["user error", "misuse", "incorrect use", "driving error", "wrong gear", "forgot", "driver", "driving"],
+    "low quality parts": ["low quality", "cheap parts", "counterfeit", "non-original", "fake parts", "parts", "replacement"],
+    "fuel quality": ["bad fuel", "dirty fuel", "wrong fuel", "contaminated fuel", "low octane", "gas", "fuel"],
+    "sensor failure": ["sensor failure", "faulty sensor", "sensor error", "reading error", "false reading", "sensor", "warning", "light"]
+}
