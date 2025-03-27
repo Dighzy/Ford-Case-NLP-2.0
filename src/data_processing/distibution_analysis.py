@@ -1,5 +1,4 @@
 import pandas as pd
-import ast
 from process_data import CategoryTransformer
 import matplotlib.pyplot as plt
 from matplotlib import gridspec
