@@ -1,0 +1,20 @@
+{
+    "Best tuner hyperparameters": {
+        "units_x1": 320,
+        "l2_x1": 1e-05,
+        "dropout_x1": 0.16845941003870238,
+        "units_x2": 192,
+        "l2_x2": 0.0001,
+        "dropout_x2": 0.12183931437605942,
+        "units_x3": 96,
+        "l2_x3": 0.001,
+        "dropout_x3": 0.005884932053947467,
+        "units_components1": 128,
+        "units_components2": 48,
+        "units_types1": 64,
+        "units_types2": 32,
+        "units_cause1": 64,
+        "units_cause2": 48,
+        "learning_rate": 0.0003
+    }
+}

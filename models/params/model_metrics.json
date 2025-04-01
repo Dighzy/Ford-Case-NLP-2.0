@@ -1,0 +1,30 @@
+{
+    "Training and Validation Metrics": {
+        "loss": 0.17103096842765808,
+        "components_output_loss": 0.04046095907688141,
+        "type_output_loss": 0.04573944956064224,
+        "cause_output_loss": 0.06527844816446304,
+        "components_output_mcc_manual": 0.7084245085716248,
+        "components_output_pr_auc": 0.9171274900436401,
+        "components_output_f1_score_manual": 0.7076687216758728,
+        "type_output_mcc_manual": 0.7742639183998108,
+        "type_output_pr_auc": 0.9671163558959961,
+        "type_output_f1_score_manual": 0.7732901573181152,
+        "cause_output_mcc_manual": 0.9035168290138245,
+        "cause_output_pr_auc": 0.9893373250961304,
+        "cause_output_f1_score_manual": 0.9203932285308838,
+        "val_loss": 0.1713203340768814,
+        "val_components_output_loss": 0.03866465762257576,
+        "val_type_output_loss": 0.045927904546260834,
+        "val_cause_output_loss": 0.06716500967741013,
+        "val_components_output_mcc_manual": 0.7251458168029785,
+        "val_components_output_pr_auc": 0.9244061708450317,
+        "val_components_output_f1_score_manual": 0.7245413064956665,
+        "val_type_output_mcc_manual": 0.7967650890350342,
+        "val_type_output_pr_auc": 0.9655210375785828,
+        "val_type_output_f1_score_manual": 0.7960678339004517,
+        "val_cause_output_mcc_manual": 0.9118043780326843,
+        "val_cause_output_pr_auc": 0.9869548678398132,
+        "val_cause_output_f1_score_manual": 0.9262171387672424
+    }
+}

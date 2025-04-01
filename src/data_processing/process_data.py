@@ -15,7 +15,7 @@ from nltk.stem import WordNetLemmatizer
 from nltk.tokenize import word_tokenize
 
 from sklearn.preprocessing import MultiLabelBinarizer
-from transformers import BertTokenizer, BertModel
+from transformers import RobertaTokenizer, RobertaModel
 
 class TextProcessor:
     def __init__(self) -> None:
@@ -57,10 +57,10 @@ class TextProcessor:
 class FeatureExtractor:
     def __init__(self) -> None:
         """
-        Load the pre-trained BERT model and tokenizer
+        Load the pre-trained RoBERTa model and tokenizer
         """
-        self.tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
-        self.model = BertModel.from_pretrained('bert-base-uncased')
+        self.tokenizer = RobertaTokenizer.from_pretrained('roberta-large')
+        self.model = RobertaModel.from_pretrained('roberta-large')
 
     def get_model_embedding(self, text: str) -> any:
         """
@@ -208,10 +208,4 @@ if __name__ == "__main__":
     else:
         df_final = pd.read_csv('data/raw/full_data_2020_2025_FORD.csv')
         #df_final = df_final.head(100).copy()
-        df_final = get_processed_data(df_final)
-
-    # Processing and normalazing the embedding and additional_features
-    embeddings = np.array(df_final["summary_embedding"].apply(lambda x: ast.literal_eval(x) if isinstance(x, str) else x).to_list())
-    pieces_binary = np.array(df_final["components_binary"].apply(lambda x: ast.literal_eval(x) if isinstance(x, str) else x).to_list())
-    problems_type_binary = np.array(df_final["problem_type_binary"].apply(lambda x: ast.literal_eval(x) if isinstance(x, str) else x).to_list())
-    problems_cause_binary = np.array(df_final["cause_binary"].apply(lambda x: ast.literal_eval(x) if isinstance(x, str) else x).to_list())
+        df_final = get_processed_data(df_final, is_training=True)
