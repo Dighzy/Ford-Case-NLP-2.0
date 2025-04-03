@@ -1,16 +1,37 @@
+import os
+import ast
 import pandas as pd
+import numpy as np
 from process_data import CategoryTransformer
 import matplotlib.pyplot as plt
 from matplotlib import gridspec
 
-if __name__ == '__main__':
-    df = pd.read_csv('data/raw/full_data_2020_2025_FORD.csv')
+import hydra
+from omegaconf import DictConfig
+from hydra.utils import to_absolute_path
 
-    category_tranformer =  CategoryTransformer()
+@hydra.main(config_path="../../configs", config_name="main.yaml", version_base=None)
+def main(cfg: DictConfig):
+    file_path = to_absolute_path(cfg.main.categories_data_path)
     
-    df[['problem_type', 'problem_cause']] = df['summary'].apply(lambda x: category_tranformer.extract_pieces_and_problems(x) if isinstance(x, str) else ('undefined', 'undefined', 'undefined')).apply(pd.Series)
-    df = category_tranformer.transform_categories(df, is_training=True)
-    df[['summary', 'components', 'problem_type', 'problem_cause']].to_csv('./data/processed/df_categories.csv',index=False)
+    if os.path.exists(file_path):
+        df = pd.read_csv(file_path)
+        print("\n➡️  Categories Data Already exists\n")
+        df['components'] = df["components"].apply(lambda x: ast.literal_eval(x) if isinstance(x, str) else x).to_list()
+        df['problem_cause'] = df["problem_cause"].apply(lambda x: ast.literal_eval(x) if isinstance(x, str) else x).to_list()
+        df['problem_type'] = df["problem_type"].apply(lambda x: ast.literal_eval(x) if isinstance(x, str) else x).to_list()
+    else:
+        print("\n➡️  Categories Data dont exists, starting the Categories processing:\n")
+        df = pd.read_csv(to_absolute_path(cfg.main.raw_data_path))
+        category_tranformer =  CategoryTransformer()
+        
+        df[['problem_type', 'problem_cause']] = df['summary'].apply(lambda x: category_tranformer.extract_pieces_and_problems(x) if isinstance(x, str) else ('undefined', 'undefined', 'undefined')).apply(pd.Series)
+        df = category_tranformer.transform_categories(df, is_training=True)
+        df[['summary', 'components', 'problem_type', 'problem_cause']].to_csv(to_absolute_path(cfg.main.categories_data_path),index=False)
+    
+    # Create the output directory if it doesn't exist
+    output_dir = to_absolute_path(cfg.main.output_path)
+    os.makedirs(output_dir, exist_ok=True)
 
     # Showing the distribution of components
     components_count_plt = df['components'].explode().value_counts()
@@ -78,6 +99,9 @@ if __name__ == '__main__':
         ax3.text(bar.get_x() + bar.get_width() / 2, yval, round(yval, 2), ha='center', va='bottom')
 
     plt.tight_layout()
-    plt.savefig('data/outputs/categories_distribution.png')
+    filename = "categories_distribution.png"
+    plt.savefig(os.path.join(output_dir, filename))
     plt.show()
 
+if __name__ == '__main__':
+    main()
