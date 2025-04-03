@@ -1,0 +1,54 @@
+main:
+  raw_data_path: "data/raw/full_data_2020_2025_FORD.csv"
+  processed_data_path: "data/processed/df_processed.csv"
+  categories_data_path: "data/processed/df_categories.csv"
+  output_path: "data/outputs"
+  make: "Ford"
+  env_name: "ford_case_iel"
+  years_list: [2020,2021,2022,2023,2024,2025]
+
+preprocessing:
+  data_limit: 100
+
+train:
+  best_model_path: "models/best_model.h5"
+  hps_file: "models/params/best_hyperparameters.json"
+  metrics_file: "models/params/model_metrics.json"
+  history_file: "models/params/history_metrics.json"
+  test_size: 0.3
+  early_stopping_patience: 15
+  epochs: 500
+  batch_size: 128
+
+tuning:
+  units_x1: {min_value: 256, max_value: 512, step: 64}
+  l2_x1: [0.00001, 0.0001, 0.001, 0.01]
+  dropout_x1: {min_value: 0.1, max_value: 0.3}
+
+  units_x2: {min_value: 64, max_value: 256, step: 64}
+  l2_x2: [0.00001, 0.0001, 0.001]
+  dropout_x2: {min_value: 0.0, max_value: 0.2}
+
+  units_x3: {min_value: 32, max_value: 128, step: 64}
+  l2_x3: [0.00001, 0.0001, 0.001]
+  dropout_x3: {min_value: 0.0, max_value: 0.2}
+
+  units_components1: {min_value: 64, max_value: 128, step: 64}
+  units_components2: {min_value: 16, max_value: 64, step: 16}
+
+  units_types1: {min_value: 64, max_value: 128, step: 64}
+  units_types2: {min_value: 16, max_value: 64, step: 16}
+
+  units_cause1: {min_value: 64, max_value: 128, step: 64}
+  units_cause2: {min_value: 16, max_value: 64, step: 16}
+
+  learning_rate: [1e-5, 3e-5, 1e-4, 3e-4, 1e-3]
+  
+  epochs: 25
+  batch_size: 128
+
+  max_trials: 50
+  executions_per_trial: 2
+  directory: "models/tuner_results"
+  project_name: "bayesian_opt_nlp"
+  

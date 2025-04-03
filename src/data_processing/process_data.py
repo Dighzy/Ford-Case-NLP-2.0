@@ -1,18 +1,15 @@
-import pandas as pd
-import numpy as np
-import tensorflow as tf
-
 import re
 import nltk
 import torch
 import json
-import os
-import ast
 
+import pandas as pd
+import numpy as np
 from typing import Tuple
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 from nltk.tokenize import word_tokenize
+from omegaconf import DictConfig
 
 from sklearn.preprocessing import MultiLabelBinarizer
 from transformers import RobertaTokenizer, RobertaModel
@@ -20,7 +17,7 @@ from transformers import RobertaTokenizer, RobertaModel
 class TextProcessor:
     def __init__(self) -> None:
         """
-        Load the lemmatizer and set the stop_words
+        # Load the lemmatizer and set the stop_words
         """
         # Downloading the resources if necessary
         nltk.download('punkt_tab')
@@ -32,11 +29,11 @@ class TextProcessor:
 
     def preprocess_text(self, text: str) -> str:
         """
-        Apply preprocess into the text, such as removing  special characters, punctuation and stop words. 
-        Apply Tokenization and Lemmatization.
+        - Apply preprocess into the text, such as removing  special characters, punctuation and stop words. 
+        - Apply Tokenization and Lemmatization.
 
-        ## Parameters
-        - text (str): The text column in the data frame.
+        ### Parameters
+        - **text (str)**: The text column in the data frame.
         """
         # Remove special characters and punctuation
         text = re.sub(r'\W', ' ', text)
@@ -57,7 +54,7 @@ class TextProcessor:
 class FeatureExtractor:
     def __init__(self) -> None:
         """
-        Load the pre-trained RoBERTa model and tokenizer
+        # Load the pre-trained RoBERTa model and tokenizer
         """
         self.tokenizer = RobertaTokenizer.from_pretrained('roberta-large')
         self.model = RobertaModel.from_pretrained('roberta-large')
@@ -66,8 +63,8 @@ class FeatureExtractor:
         """
         Converts text into a BERT embedding
 
-        ## Parameters
-        - text (str): The text column in the data frame.
+        ### Parameters
+        - **text (str)**: The text column in the data frame.
         """
         if pd.isna(text):
             return torch.zeros(512)  
@@ -83,9 +80,9 @@ class CategoryTransformer:
         """
         Transform the 'pieces', 'type_of_problem', and 'cause' columns into binary categories.
 
-        ## Parameters
-        - df (pd.DataFrame): DataFrame.
-        - is_training (bool): Flag to determine if it's training (to save the categories).
+        ### Parameters
+        - **df (pd.DataFrame)**: DataFrame.
+        - **is_training (bool)**: Flag to determine if it's training (to save the categories).
         """
         
         # Initialize MultiLabelBinarizer for each category column
@@ -135,8 +132,8 @@ class CategoryTransformer:
         """
         Extracts all pieces and problem types from the given text.
         
-        ## Parameters:
-        text (str): The summary text.
+        ### Parameters:
+        - **text (str)**: The summary text.
         
         """
         # List of keywords that indicate types of problems or failures
@@ -161,13 +158,14 @@ class CategoryTransformer:
 
         return problem_result, cause_result
 
-def get_processed_data(df_final: pd.DataFrame, is_training: bool =False) -> pd.DataFrame:
+def get_processed_data(cfg: DictConfig, df_final: pd.DataFrame, is_training: bool =False) -> pd.DataFrame:
     """
-    Pipeline to process all data.
-    
-    ## Parameters:
-    df_final (pd.DataFrame): The data to process. 
-    is_training (bool): Flag to determine if it's training.
+    ## Pipeline to process all data.
+
+    ### Parameters:
+    - **df_final (pd.DataFrame)**: The data to process.
+    - **is_training (bool)**: Flag to determine if it's training.
+    - **path (str)**: Path to safe the dataframe into a csv file.
     """
 
     # Getting classes
@@ -190,22 +188,6 @@ def get_processed_data(df_final: pd.DataFrame, is_training: bool =False) -> pd.D
         columns_save = ['summary', 'summary_embedding', 'components_binary', 'problem_type_binary', 'cause_binary']
         for coluna in columns_save:
             df_save[coluna] = df_save[coluna].apply(lambda x: json.dumps(x.tolist()) if isinstance(x, (np.ndarray, list)) else x)
-        df_save[columns_save].to_csv('./data/processed/df_processed.csv',index=False)
+        df_save[columns_save].to_csv(cfg.main.processed_data_path, index=False)
 
     return df_final
-
-
-if __name__ == "__main__":
-    
-    """ Seeding """
-    np.random.seed(42)
-    tf.random.set_seed(42)
-
-    file_path = './data/processed/df_processed.csv'
-
-    if os.path.exists(file_path):
-         df_final = pd.read_csv(file_path)
-    else:
-        df_final = pd.read_csv('data/raw/full_data_2020_2025_FORD.csv')
-        #df_final = df_final.head(100).copy()
-        df_final = get_processed_data(df_final, is_training=True)
