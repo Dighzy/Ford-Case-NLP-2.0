@@ -16,9 +16,11 @@ from sklearn.model_selection import train_test_split
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from data_processing.process_data import get_processed_data
-from train_and_test.train import get_model_tuner  
 
-@hydra.main(config_path="../../configs", config_name="main.yaml", version_base=None)
+from train_and_test.train import get_model_tuner  
+from utils_scripts import utils
+
+@hydra.main(config_path="../../configs", config_name="temp.yaml", version_base=None)
 def main(cfg: DictConfig) -> None:
     np.random.seed(42)
     tf.random.set_seed(42)
@@ -32,7 +34,7 @@ def main(cfg: DictConfig) -> None:
         df_final = df_final.head(cfg.preprocessing.data_limit).copy()
 
         print("\n➡️  Preprocessed Data dont exists, starting the preprocessing:\n")
-        df_final = get_processed_data(df_final, is_training=True, path=file_path)
+        df_final = get_processed_data(cfg, df_final, is_training=cfg.train.is_training)
     
     embeddings = np.array(df_final["summary_embedding"].apply(lambda x: ast.literal_eval(x) if isinstance(x, str) else x).to_list())
     components_binary = np.array(df_final["components_binary"].apply(lambda x: ast.literal_eval(x) if isinstance(x, str) else x).to_list())
@@ -97,4 +99,7 @@ def main(cfg: DictConfig) -> None:
     print(f"Metrics saved to {metrics_file}")
 
 if __name__ == "__main__":
+    json_file = utils.load_json('./configs/main.json')
+    utils.convert_json_to_temp_yaml(json_file)
+
     main()

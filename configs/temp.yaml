@@ -1,0 +1,109 @@
+category_transformer:
+  categories_path: models/params/categories/
+  cause_mapping_file: cause_problems.json
+  problem_mapping_file: type_problems.json
+  replace_threshold: 200
+embedding:
+  max_length: 256
+  name: roberta-large
+  padding: true
+  truncation: true
+main:
+  categories_data_path: data/processed/df_categories.csv
+  env_name: ford_case_v2
+  make: Ford
+  output_path: data/outputs
+  processed_data_path: data/processed/df_processed2.csv
+  raw_data_path: data/raw/full_data_2020_2025_FORD.csv
+  years_list:
+  - 2020
+  - 2021
+  - 2022
+  - 2023
+  - 2024
+  - 2025
+preprocessing:
+  data_limit: 100
+  is_training: true
+  summary_column: summary
+train:
+  batch_size: 128
+  best_model_path: models/best_model.h5
+  early_stopping_patience: 15
+  epochs: 500
+  history_file: models/params/history_metrics.json
+  hps_file: models/params/best_hyperparameters.json
+  is_training: true
+  metrics_file: models/params/model_metrics.json
+  test_size: 0.3
+tuning:
+  batch_size: 128
+  directory: models/tuner_results
+  dropout_x1:
+    max_value: 0.3
+    min_value: 0.1
+  dropout_x2:
+    max_value: 0.2
+    min_value: 0.0
+  dropout_x3:
+    max_value: 0.2
+    min_value: 0.0
+  epochs: 25
+  executions_per_trial: 2
+  l2_x1:
+  - 1.0e-05
+  - 0.0001
+  - 0.001
+  - 0.01
+  l2_x2:
+  - 1.0e-05
+  - 0.0001
+  - 0.001
+  l2_x3:
+  - 1.0e-05
+  - 0.0001
+  - 0.001
+  learning_rate:
+  - 1.0e-05
+  - 3.0e-05
+  - 0.0001
+  - 0.0003
+  - 0.001
+  max_trials: 50
+  project_name: bayesian_opt_nlp
+  units_cause1:
+    max_value: 128
+    min_value: 64
+    step: 64
+  units_cause2:
+    max_value: 64
+    min_value: 16
+    step: 16
+  units_components1:
+    max_value: 128
+    min_value: 64
+    step: 64
+  units_components2:
+    max_value: 64
+    min_value: 16
+    step: 16
+  units_types1:
+    max_value: 128
+    min_value: 64
+    step: 64
+  units_types2:
+    max_value: 64
+    min_value: 16
+    step: 16
+  units_x1:
+    max_value: 512
+    min_value: 256
+    step: 64
+  units_x2:
+    max_value: 256
+    min_value: 64
+    step: 64
+  units_x3:
+    max_value: 128
+    min_value: 32
+    step: 64

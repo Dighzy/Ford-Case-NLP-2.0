@@ -1,8 +1,13 @@
 import os
 import sys
 import requests
+import json
 import subprocess
 import pandas as pd
+import yaml
+from pathlib import Path
+from typing import Any
+
 from hydra.utils import to_absolute_path
 from omegaconf import DictConfig
 
@@ -131,3 +136,19 @@ def check_and_create_env(cfg: DictConfig) -> None:
     except subprocess.CalledProcessError as e:
         print(f"Error occurred while checking/creating the environment: {e}")
         sys.exit(1)
+
+def load_json(path: str) -> Any:
+    """Load JSON file and return as a dictionary."""
+    try:
+        with open(path, "r") as file:
+            return json.load(file)
+    except FileNotFoundError:
+        return {}
+
+def convert_json_to_temp_yaml(json_config: dict, temp_path: str = './configs/temp.yaml') -> Path:
+    """
+    Converts a JSON dict into a temporary YAML file and returns its path.
+    """
+    with open(temp_path, 'w') as file:
+        yaml.dump(json_config, file)
+    
